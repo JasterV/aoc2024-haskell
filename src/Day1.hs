@@ -5,7 +5,7 @@ module Day1
 where
 
 import Control.Exception (try)
-import qualified Data.Bifunctor as Bifunctor
+import qualified Data.Bifunctor as BF
 import Data.Either
 import Data.List (sort)
 import Text.Read (readEither)
@@ -19,16 +19,18 @@ data ParseError
   deriving (Show)
 
 data Error
-  = ReadFileError String
-  | ParseInputError [ParseError]
+  = ReadFileError FilePath IOError
+  | ParseInputError ParseError
   deriving (Show)
 
 partOne :: String -> IO (Either Error Int)
 partOne filepath = do
-  result <- tryReadFile filepath
+  result <- try (readFile filepath)
   case result of
-    Left readError -> return (Left readError)
-    Right contents -> return (calculateScore <$> parseInput contents)
+    Left readError ->
+      return $ Left (ReadFileError filepath readError)
+    Right contents ->
+      return $ calculateScore <$> BF.first ParseInputError (parseInput contents)
   where
     -- To calculate the overall score we just need to
     -- sort the lists and calculate the distances between each element
@@ -38,10 +40,10 @@ partOne filepath = do
 
 partTwo :: String -> IO (Either Error Int)
 partTwo filepath = do
-  result <- tryReadFile filepath
+  result <- try (readFile filepath)
   case result of
-    Left readError -> return (Left readError)
-    Right contents -> return (calculateScore <$> parseInput contents)
+    Left readError -> return $ Left (ReadFileError filepath readError)
+    Right contents -> return $ calculateScore <$> BF.first ParseInputError (parseInput contents)
   where
     -- To calculate the overall score we need to sum all the similarity scores
     -- of each element from the left list applied to the right list
@@ -51,17 +53,15 @@ partTwo filepath = do
     similarity id ids = id * count id ids
     count x = length . filter (== x)
 
-parseInput :: String -> Either Error ([LocationID], [LocationID])
-parseInput input = Bifunctor.first ParseInputError $ unzip <$> parseLines (lines input)
-
-parseLines :: [String] -> Either [ParseError] [(LocationID, LocationID)]
-parseLines xs =
-  if null errors
-    then Right parsedLines
-    else Left errors
+parseInput :: String -> Either ParseError ([LocationID], [LocationID])
+parseInput xs =
+  case errors of
+    [] -> Right parsedInput
+    (parseError : _) -> Left parseError
   where
-    errors = lefts $ map (parseWords . words) xs
-    parsedLines = rights $ map (parseWords . words) xs
+    parse = map (parseWords . words) . lines
+    errors = lefts $ parse xs
+    parsedInput = unzip $ rights $ parse xs
 
 parseWords :: [String] -> Either ParseError (LocationID, LocationID)
 parseWords [left, right] = do
@@ -69,24 +69,16 @@ parseWords [left, right] = do
   rightLocation <- parseRight
   return (leftLocation, rightLocation)
   where
-    parseLeft :: Either ParseError LocationID
     parseLeft =
-      Bifunctor.first
+      BF.first
         (ParseLocationError left)
         (readEither left :: Either String LocationID)
 
-    parseRight :: Either ParseError LocationID
     parseRight =
-      Bifunctor.first
+      BF.first
         (ParseLocationError right)
         (readEither right :: Either String LocationID)
 
 -- If the line does not contain exactly two words,
 -- it is considered an error
 parseWords xs' = Left $ ParseLineError (unwords xs')
-
-tryReadFile :: String -> IO (Either Error String)
-tryReadFile filepath = Bifunctor.first (const $ ReadFileError filepath) <$> io
-  where
-    io :: IO (Either IOError String)
-    io = try (readFile filepath)
