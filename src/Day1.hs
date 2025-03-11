@@ -22,7 +22,7 @@ partOne filepath = do
   return score
   where
     -- To calculate the overall score we just need to
-    -- sort the lists and calculate the distances of each element
+    -- sort the lists and calculate the distances between each element
     calculateScore (left, right) =
       sum $ zipWith distance (sort left) (sort right)
     distance a b = abs (a - b)
