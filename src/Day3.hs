@@ -4,46 +4,38 @@ import Data.Maybe (mapMaybe)
 import Text.Read (readMaybe)
 import Text.Regex.TDFA
 
--- Part One
+-- TODO: Refactor to parse operations to a type and then be executed by a "execute" function
 
 partOne :: String -> Int
-partOne text = sum $ map (uncurry (*)) $ mapMaybe parseOperators operations
+partOne text = sum $ map (uncurry (*)) $ mapMaybe parseOperation matches
   where
-    operations :: [String]
-    operations = getAllTextMatches (text =~ "mul\\(([0-9]{1,3}),([0-9]{1,3})\\)")
-
--- Part Two
-
-data ExecutionState = Enabled | Disabled
+    matches = getAllTextMatches (text =~ "mul\\(([0-9]{1,3}),([0-9]{1,3})\\)")
 
 partTwo :: String -> Int
 partTwo text =
   sum $
     map (uncurry (*)) $
-      mapMaybe parseOperators $
-        filterDisabledOperations operations
+      mapMaybe parseOperation $
+        filterDisabledOperations matches
   where
-    operations :: [String]
-    operations = getAllTextMatches (text =~ "do\\(\\)|don't\\(\\)|mul\\([0-9]{1,3},[0-9]{1,3}\\)")
+    matches = getAllTextMatches (text =~ "do\\(\\)|don't\\(\\)|mul\\([0-9]{1,3},[0-9]{1,3}\\)")
 
-    filterDisabledOperations :: [String] -> [String]
-    filterDisabledOperations ops = aux ops [] Enabled
-      where
-        aux [] acc _ = acc
-        aux ("don't()" : ops') acc _ = aux ops' acc Disabled
-        aux ("do()" : ops') acc _ = aux ops' acc Enabled
-        aux (op : ops') acc Enabled = aux ops' (op : acc) Enabled
-        aux (_ : ops') acc Disabled = aux ops' acc Disabled
+data ExecutionState = Enabled | Disabled
 
--- Shared
+filterDisabledOperations :: [String] -> [String]
+filterDisabledOperations operations = aux Enabled operations []
+  where
+    aux _ [] acc = acc
+    aux _ ("don't()" : xs) acc = aux Disabled xs acc
+    aux _ ("do()" : xs) acc = aux Enabled xs acc
+    aux Enabled (op : xs) acc = aux Enabled xs (op : acc)
+    aux Disabled (_ : xs) acc = aux Disabled xs acc
 
-parseOperators :: String -> Maybe (Int, Int)
-parseOperators x =
-  case matches of
+parseOperation :: String -> Maybe (Int, Int)
+parseOperation x =
+  case getAllTextMatches (x =~ "[0-9]{1,3}") of
     [left, right] -> do
       leftOp <- readMaybe left :: Maybe Int
       rightOp <- readMaybe right :: Maybe Int
       return (leftOp, rightOp)
     _ -> Nothing
-  where
-    matches = getAllTextMatches (x =~ "[0-9]{1,3}") :: [String]
