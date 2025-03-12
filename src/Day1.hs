@@ -4,7 +4,6 @@ module Day1
   )
 where
 
-import Control.Exception (try)
 import qualified Data.Bifunctor as BF
 import Data.Either
 import Data.List (sort)
@@ -18,17 +17,11 @@ data ParseError
   | ParseLineError String
   deriving (Show)
 
-data Error
-  = ReadFileError FilePath IOError
-  | ParseInputError ParseError
+newtype Error = ParseInputError ParseError
   deriving (Show)
 
-partOne :: String -> IO (Either Error Int)
-partOne filepath = do
-  result <- try (readFile filepath)
-  case result of
-    Left readError -> return $ Left (ReadFileError filepath readError)
-    Right contents -> return $ calculateScore <$> BF.first ParseInputError (parseInput contents)
+partOne :: String -> Either Error Int
+partOne contents = calculateScore <$> BF.first ParseInputError (parseInput contents)
   where
     -- To calculate the overall score we just need to
     -- sort the lists and calculate the distances between each element
@@ -36,12 +29,8 @@ partOne filepath = do
       sum $ zipWith distance (sort left) (sort right)
     distance a b = abs (a - b)
 
-partTwo :: String -> IO (Either Error Int)
-partTwo filepath = do
-  result <- try (readFile filepath)
-  case result of
-    Left readError -> return $ Left (ReadFileError filepath readError)
-    Right contents -> return $ calculateScore <$> BF.first ParseInputError (parseInput contents)
+partTwo :: String -> Either Error Int
+partTwo contents = calculateScore <$> BF.first ParseInputError (parseInput contents)
   where
     -- To calculate the overall score we need to sum all the similarity scores
     -- of each element from the left list applied to the right list
