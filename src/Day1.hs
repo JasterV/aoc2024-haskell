@@ -27,10 +27,8 @@ partOne :: String -> IO (Either Error Int)
 partOne filepath = do
   result <- try (readFile filepath)
   case result of
-    Left readError ->
-      return $ Left (ReadFileError filepath readError)
-    Right contents ->
-      return $ calculateScore <$> BF.first ParseInputError (parseInput contents)
+    Left readError -> return $ Left (ReadFileError filepath readError)
+    Right contents -> return $ calculateScore <$> BF.first ParseInputError (parseInput contents)
   where
     -- To calculate the overall score we just need to
     -- sort the lists and calculate the distances between each element
