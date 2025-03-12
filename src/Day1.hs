@@ -4,6 +4,7 @@ module Day1
   )
 where
 
+import Control.Monad (mapAndUnzipM)
 import qualified Data.Bifunctor as BF
 import Data.Either
 import Data.List (sort)
@@ -41,14 +42,7 @@ partTwo contents = calculateScore <$> BF.first ParseInputError (parseInput conte
     count x = length . filter (== x)
 
 parseInput :: String -> Either ParseError ([LocationID], [LocationID])
-parseInput xs =
-  case errors of
-    [] -> Right parsedInput
-    (parseError : _) -> Left parseError
-  where
-    parse = map (parseWords . words) . lines
-    errors = lefts $ parse xs
-    parsedInput = unzip $ rights $ parse xs
+parseInput xs = mapAndUnzipM (parseWords . words) (lines xs)
 
 parseWords :: [String] -> Either ParseError (LocationID, LocationID)
 parseWords [left, right] = do
@@ -56,16 +50,9 @@ parseWords [left, right] = do
   rightLocation <- parseRight
   return (leftLocation, rightLocation)
   where
-    parseLeft =
-      BF.first
-        (ParseLocationError left)
-        (readEither left :: Either String LocationID)
-
-    parseRight =
-      BF.first
-        (ParseLocationError right)
-        (readEither right :: Either String LocationID)
+    parseLeft = BF.first (ParseLocationError left) (readEither left :: Either String LocationID)
+    parseRight = BF.first (ParseLocationError right) (readEither right :: Either String LocationID)
 
 -- If the line does not contain exactly two words,
 -- it is considered an error
-parseWords xs' = Left $ ParseLineError (unwords xs')
+parseWords xs = Left $ ParseLineError (unwords xs)
