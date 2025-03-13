@@ -1,10 +1,10 @@
-module Day2 (partOne, partTwo) where
+module Day2 (partOne, partTwo, Error) where
 
 import qualified Data.Bifunctor as BF
 import Text.Read (readEither)
 
 newtype Error = ParseError String
-  deriving (Show)
+  deriving (Show, Eq)
 
 type Level = Int
 

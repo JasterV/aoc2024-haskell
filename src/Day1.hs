@@ -1,6 +1,7 @@
 module Day1
   ( partOne,
     partTwo,
+    Error,
   )
 where
 
@@ -16,10 +17,10 @@ type LocationID = Int
 data ParseError
   = ParseLocationError String String
   | ParseLineError String
-  deriving (Show)
+  deriving (Show, Eq)
 
 newtype Error = ParseInputError ParseError
-  deriving (Show)
+  deriving (Show, Eq)
 
 partOne :: String -> Either Error Int
 partOne contents = calculateScore <$> BF.first ParseInputError (parseInput contents)

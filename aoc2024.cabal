@@ -44,6 +44,9 @@ test-suite aoc2024-test
   type: exitcode-stdio-1.0
   main-is: Spec.hs
   other-modules:
+      Day1Spec
+      Day2Spec
+      Day3Spec
       Paths_aoc2024
   autogen-modules:
       Paths_aoc2024
@@ -51,8 +54,7 @@ test-suite aoc2024-test
       test
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      HUnit >=1.6.2.0 && <1.7
-    , QuickCheck >=2.14.3 && <2.15
+      QuickCheck >=2.14.3 && <2.15
     , aoc2024
     , base >=4.7 && <5
     , hspec >=2.0.0
