@@ -11,11 +11,8 @@ permissions:
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
-
     
-
     steps:
     - uses: actions/checkout@v4
     
@@ -28,23 +25,11 @@ jobs:
         stack-version: 3.3.1
         stack-setup-ghc: true
 
-    - name: Cache
-      uses: actions/cache@v3
-      env:
-        cache-name: cache-cabal
-      with:
-        path: ~/.cabal
-        key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/*.cabal') }}-${{ hashFiles('**/cabal.project') }}
-        restore-keys: |
-          ${{ runner.os }}-build-${{ env.cache-name }}-
-          ${{ runner.os }}-build-
-          ${{ runner.os }}-
-
     - name: Install dependencies
       run: |
         stack update
-        stack build --only-dependencies --enable-tests --enable-benchmarks
+        stack build --only-dependencies
     - name: Build
-      run: stack build --enable-tests --enable-benchmarks all
+      run: stack build
     - name: Run tests
-      run: stack test all
+      run: stack test
