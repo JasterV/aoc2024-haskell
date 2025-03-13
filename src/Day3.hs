@@ -4,12 +4,6 @@ import Data.Maybe (mapMaybe)
 import Text.Read (readMaybe)
 import Text.Regex.TDFA
 
-data ProgramState = Enabled | Disabled
-
-data Program = Program ProgramState Int
-
-data Instruction = Do | Dont | Mul Int Int
-
 partOne :: String -> Int
 partOne text = programValue $ foldl runInstruction initProgram $ parseInstructions matches
   where
@@ -19,6 +13,14 @@ partTwo :: String -> Int
 partTwo text = programValue $ foldl runInstruction initProgram $ parseInstructions matches
   where
     matches = getAllTextMatches (text =~ "do\\(\\)|don't\\(\\)|mul\\([0-9]{1,3},[0-9]{1,3}\\)")
+
+-- Program
+
+data ProgramState = Enabled | Disabled
+
+data Program = Program ProgramState Int
+
+data Instruction = Do | Dont | Mul Int Int
 
 initProgram :: Program
 initProgram = Program Enabled 0
