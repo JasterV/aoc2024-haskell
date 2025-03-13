@@ -4,38 +4,43 @@ import Data.Maybe (mapMaybe)
 import Text.Read (readMaybe)
 import Text.Regex.TDFA
 
--- TODO: Refactor to parse operations to a type and then be executed by a "execute" function
+data ProgramState = Enabled | Disabled
+
+data Program = Program ProgramState Int
+
+data Instruction = Do | Dont | Mul Int Int
 
 partOne :: String -> Int
-partOne text = sum $ map (uncurry (*)) $ mapMaybe parseOperation matches
+partOne text = programValue $ foldl runInstruction initProgram $ parseInstructions matches
   where
     matches = getAllTextMatches (text =~ "mul\\(([0-9]{1,3}),([0-9]{1,3})\\)")
 
 partTwo :: String -> Int
-partTwo text =
-  sum $
-    map (uncurry (*)) $
-      mapMaybe parseOperation $
-        filterDisabledOperations matches
+partTwo text = programValue $ foldl runInstruction initProgram $ parseInstructions matches
   where
     matches = getAllTextMatches (text =~ "do\\(\\)|don't\\(\\)|mul\\([0-9]{1,3},[0-9]{1,3}\\)")
 
-data ExecutionState = Enabled | Disabled
+initProgram :: Program
+initProgram = Program Enabled 0
 
-filterDisabledOperations :: [String] -> [String]
-filterDisabledOperations operations = aux Enabled operations []
+programValue :: Program -> Int
+programValue (Program _ value) = value
+
+runInstruction :: Program -> Instruction -> Program
+runInstruction (Program _ value) Do = Program Enabled value
+runInstruction (Program _ value) Dont = Program Disabled value
+runInstruction (Program Disabled value) _ = Program Disabled value
+runInstruction (Program Enabled value) (Mul x y) = Program Enabled (value + (x * y))
+
+parseInstructions :: [String] -> [Instruction]
+parseInstructions = mapMaybe parseInstruction
   where
-    aux _ [] acc = acc
-    aux _ ("don't()" : xs) acc = aux Disabled xs acc
-    aux _ ("do()" : xs) acc = aux Enabled xs acc
-    aux Enabled (op : xs) acc = aux Enabled xs (op : acc)
-    aux Disabled (_ : xs) acc = aux Disabled xs acc
-
-parseOperation :: String -> Maybe (Int, Int)
-parseOperation x =
-  case getAllTextMatches (x =~ "[0-9]{1,3}") of
-    [left, right] -> do
-      leftOp <- readMaybe left :: Maybe Int
-      rightOp <- readMaybe right :: Maybe Int
-      return (leftOp, rightOp)
-    _ -> Nothing
+    parseInstruction "do()" = Just Do
+    parseInstruction "don't()" = Just Dont
+    parseInstruction x =
+      case getAllTextMatches (x =~ "[0-9]{1,3}") of
+        [left, right] -> do
+          leftOp <- readMaybe left :: Maybe Int
+          rightOp <- readMaybe right :: Maybe Int
+          return (Mul leftOp rightOp)
+        _ -> Nothing
