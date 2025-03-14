@@ -17,13 +17,22 @@ partOne :: String -> Either ParseError Int
 partOne input = do
   (rules, updates) <- parseInput input
   return $ sum $ map middleElem $ filter (isValidUpdate rules) updates
-  where
-    isValidUpdate rules update = sortBy (compareByRules rules) update == update
-    compareByRules rules x y = if member (x, y) rules then LT else GT
-    middleElem update = update !! (length update `div` 2)
 
 partTwo :: String -> Either ParseError Int
-partTwo _ = Right 0
+partTwo input = do
+  (rules, updates) <- parseInput input
+  return $ sum $ map (middleElem . sortUpdate rules) $ filter (not . isValidUpdate rules) updates
+
+isValidUpdate :: Set Rule -> Update -> Bool
+isValidUpdate rules update = sortUpdate rules update == update
+
+sortUpdate :: Set Rule -> Update -> Update
+sortUpdate rules = sortBy compareByRules
+  where
+    compareByRules x y = if member (x, y) rules then LT else GT
+
+middleElem :: Update -> Int
+middleElem update = update !! (length update `div` 2)
 
 parseInput :: String -> Either ParseError (Set Rule, [Update])
 parseInput content = case T.splitOn separator text of

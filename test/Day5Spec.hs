@@ -1,6 +1,6 @@
 module Day5Spec (spec) where
 
-import Day5 (partOne)
+import Day5 (partOne, partTwo)
 import Test.Hspec
 
 spec :: Spec
@@ -8,6 +8,10 @@ spec = do
   describe "PartOne" $ do
     it "works" $ do
       partOne input `shouldBe` Right 143
+
+  describe "PartTwo" $ do
+    it "works" $ do
+      partTwo input `shouldBe` Right 123
   where
     input =
       "47|53\n\
