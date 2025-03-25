@@ -28,6 +28,8 @@ library
       Day1
       Day2
       Day3
+      Day4
+      Day4.Matrix
       Day5
   other-modules:
       Paths_aoc2024
@@ -50,6 +52,7 @@ test-suite aoc2024-test
       Day1Spec
       Day2Spec
       Day3Spec
+      Day4Spec
       Day5Spec
       Paths_aoc2024
   autogen-modules:
