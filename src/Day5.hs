@@ -1,8 +1,9 @@
 module Day5 (ParseError, partOne, partTwo) where
 
 import qualified Data.Bifunctor as BF
+import Data.HashSet (HashSet)
+import qualified Data.HashSet as HashSet
 import Data.List (sortBy)
-import Data.Set (Set, fromList, member)
 import qualified Data.Text as T
 import Data.Text.Read (decimal)
 
@@ -23,18 +24,18 @@ partTwo input = do
   (rules, updates) <- parseInput input
   return $ sum $ map (middleElem . sortUpdate rules) $ filter (not . isValidUpdate rules) updates
 
-isValidUpdate :: Set Rule -> Update -> Bool
+isValidUpdate :: HashSet Rule -> Update -> Bool
 isValidUpdate rules update = sortUpdate rules update == update
 
-sortUpdate :: Set Rule -> Update -> Update
+sortUpdate :: HashSet Rule -> Update -> Update
 sortUpdate rules = sortBy compareByRules
   where
-    compareByRules x y = if member (x, y) rules then LT else GT
+    compareByRules x y = if HashSet.member (x, y) rules then LT else GT
 
 middleElem :: Update -> Int
 middleElem update = update !! (length update `div` 2)
 
-parseInput :: String -> Either ParseError (Set Rule, [Update])
+parseInput :: String -> Either ParseError (HashSet Rule, [Update])
 parseInput content = case T.splitOn separator text of
   [left, right] -> do
     rules <- parseRules left
@@ -45,8 +46,8 @@ parseInput content = case T.splitOn separator text of
     text = T.pack content
     separator = T.pack "\n\n"
 
-parseRules :: T.Text -> Either ParseError (Set Rule)
-parseRules rules = fromList <$> mapM parseRule (T.lines rules)
+parseRules :: T.Text -> Either ParseError (HashSet Rule)
+parseRules rules = HashSet.fromList <$> mapM parseRule (T.lines rules)
   where
     parseRule rule = case T.split (== '|') rule of
       [left, right] -> do
