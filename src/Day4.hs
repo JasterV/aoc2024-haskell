@@ -1,6 +1,6 @@
 module Day4 (partOne, partTwo) where
 
-import Data.List (transpose)
+import Data.List (sort, transpose)
 import qualified Day4.Matrix as M
 
 partOne :: String -> Int
@@ -20,8 +20,13 @@ partOne input =
     countXMAS [] = 0
 
 partTwo :: String -> Int
-partTwo input =
-  let matrix = M.buildMatrix (lines input)
-   in length $ filter (isXMAS . fst) $ filter ((== 'a') . snd) $ M.toList matrix
+partTwo input = M.size (M.filterWithKey isXMAS matrix)
   where
-    isXMAS = undefined
+    matrix = M.buildMatrix (lines input)
+
+    isXMAS (col, row) 'A' =
+      let firstDiagonal = M.lookupMultiple [(col - 1, row - 1), (col + 1, row + 1)] matrix
+          secondDiagonal = M.lookupMultiple [(col - 1, row + 1), (col + 1, row - 1)] matrix
+       in sort firstDiagonal == "MS"
+            && sort secondDiagonal == "MS"
+    isXMAS _ _ = False

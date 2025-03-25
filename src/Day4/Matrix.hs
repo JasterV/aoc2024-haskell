@@ -5,23 +5,24 @@ module Day4.Matrix
   ( Matrix,
     buildMatrix,
     groupWith,
-    getValue,
-    getValues,
-    toList,
+    lookup,
+    lookupMultiple,
+    filterWithKey,
+    size,
   )
 where
 
-import Data.Foldable (find)
+import Data.HashMap.Lazy (HashMap)
+import qualified Data.HashMap.Lazy as HashMap
 import Data.IntMap.Lazy (IntMap)
 import qualified Data.IntMap.Lazy as IntMap
 import Data.Maybe
+import Prelude hiding (lookup)
 
-type AssocList k v = [(k, v)]
-
-newtype Matrix v = Matrix (AssocList (Int, Int) v)
+newtype Matrix v = Matrix (HashMap (Int, Int) v)
 
 buildMatrix :: [[a]] -> Matrix a
-buildMatrix xs = Matrix (go xs 0 [])
+buildMatrix xs = Matrix (go xs 0 HashMap.empty)
   where
     go [] _ acc = acc
     go (x : xs') row acc =
@@ -30,26 +31,29 @@ buildMatrix xs = Matrix (go xs 0 [])
 
     parseRow [] _ acc = acc
     parseRow (x : xs') (row, column) acc =
-      let acc' = ((row, column), x) : acc
+      let acc' = HashMap.insert (row, column) x acc
        in parseRow xs' (row, column + 1) acc'
 
-toList :: Matrix v -> [((Int, Int), v)]
-toList (Matrix assoc) = assoc
+size :: Matrix v -> Int
+size (Matrix hmap) = HashMap.size hmap
 
-getValue :: (Int, Int) -> Matrix v -> Maybe v
-getValue position (Matrix assoc) = snd <$> find ((== position) . fst) assoc
+filterWithKey :: ((Int, Int) -> v -> Bool) -> Matrix v -> Matrix v
+filterWithKey f (Matrix hmap) = Matrix (HashMap.filterWithKey f hmap)
 
-getValues :: [(Int, Int)] -> Matrix v -> [v]
-getValues positions matrix = mapMaybe (`getValue` matrix) positions
+lookup :: (Int, Int) -> Matrix v -> Maybe v
+lookup position (Matrix hmap) = HashMap.lookup position hmap
+
+lookupMultiple :: [(Int, Int)] -> Matrix v -> [v]
+lookupMultiple positions matrix = mapMaybe (`lookup` matrix) positions
 
 {--
 Given a matrix of elements and a function mapping a position into an aggregation of its values,
 group the elements by the aggregation result
 --}
 groupWith :: forall v. ((Int, Int) -> Int) -> Matrix v -> [[v]]
-groupWith f (Matrix matrix) =
+groupWith f (Matrix hmap) =
   let intMap :: IntMap [v]
-      intMap = foldr (\(position, value) -> insertValue (f position) value) IntMap.empty matrix
+      intMap = HashMap.foldrWithKey (insertValue . f) IntMap.empty hmap
    in IntMap.elems intMap
   where
     insertValue key value =
