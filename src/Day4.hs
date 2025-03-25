@@ -20,4 +20,8 @@ partOne input =
     countXMAS [] = 0
 
 partTwo :: String -> Int
-partTwo _input = 0
+partTwo input =
+  let matrix = M.buildMatrix (lines input)
+   in length $ filter (isXMAS . fst) $ filter ((== 'a') . snd) $ M.toList matrix
+  where
+    isXMAS = undefined

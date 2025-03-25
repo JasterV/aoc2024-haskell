@@ -1,10 +1,20 @@
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
-module Day4.Matrix (Matrix, buildMatrix, groupWith) where
+module Day4.Matrix
+  ( Matrix,
+    buildMatrix,
+    groupWith,
+    getValue,
+    getValues,
+    toList,
+  )
+where
 
+import Data.Foldable (find)
 import Data.IntMap.Lazy (IntMap)
 import qualified Data.IntMap.Lazy as IntMap
+import Data.Maybe
 
 type AssocList k v = [(k, v)]
 
@@ -22,6 +32,15 @@ buildMatrix xs = Matrix (go xs 0 [])
     parseRow (x : xs') (row, column) acc =
       let acc' = ((row, column), x) : acc
        in parseRow xs' (row, column + 1) acc'
+
+toList :: Matrix v -> [((Int, Int), v)]
+toList (Matrix assoc) = assoc
+
+getValue :: (Int, Int) -> Matrix v -> Maybe v
+getValue position (Matrix assoc) = snd <$> find ((== position) . fst) assoc
+
+getValues :: [(Int, Int)] -> Matrix v -> [v]
+getValues positions matrix = mapMaybe (`getValue` matrix) positions
 
 {--
 Given a matrix of elements and a function mapping a position into an aggregation of its values,
