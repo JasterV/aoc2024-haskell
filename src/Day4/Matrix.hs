@@ -12,17 +12,16 @@ module Day4.Matrix
   )
 where
 
-import Data.HashMap.Lazy (HashMap)
-import qualified Data.HashMap.Lazy as HashMap
 import qualified Data.IntMap.Lazy as IntMap
-import Data.List (sortOn)
+import Data.Map.Lazy (Map)
+import qualified Data.Map.Lazy as Map
 import Data.Maybe
 import Prelude hiding (lookup)
 
-newtype Matrix v = Matrix (HashMap (Int, Int) v)
+newtype Matrix v = Matrix (Map (Int, Int) v)
 
 buildMatrix :: [[a]] -> Matrix a
-buildMatrix xs = Matrix (go xs 0 HashMap.empty)
+buildMatrix xs = Matrix (go xs 0 Map.empty)
   where
     go [] _ acc = acc
     go (x : xs') row acc =
@@ -31,17 +30,17 @@ buildMatrix xs = Matrix (go xs 0 HashMap.empty)
 
     parseRow [] _ acc = acc
     parseRow (x : xs') (row, column) acc =
-      let acc' = HashMap.insert (row, column) x acc
+      let acc' = Map.insert (row, column) x acc
        in parseRow xs' (row, column + 1) acc'
 
 size :: Matrix v -> Int
-size (Matrix hmap) = HashMap.size hmap
+size (Matrix hmap) = Map.size hmap
 
 filterWithKey :: ((Int, Int) -> v -> Bool) -> Matrix v -> Matrix v
-filterWithKey f (Matrix hmap) = Matrix (HashMap.filterWithKey f hmap)
+filterWithKey f (Matrix hmap) = Matrix (Map.filterWithKey f hmap)
 
 lookup :: (Int, Int) -> Matrix v -> Maybe v
-lookup position (Matrix hmap) = HashMap.lookup position hmap
+lookup position (Matrix hmap) = Map.lookup position hmap
 
 lookupMultiple :: [(Int, Int)] -> Matrix v -> [v]
 lookupMultiple positions matrix = mapMaybe (`lookup` matrix) positions
@@ -53,7 +52,7 @@ The values are grouped in order.
 --}
 groupWith :: forall v. ((Int, Int) -> Int) -> Matrix v -> [[v]]
 groupWith f (Matrix hmap) =
-  let sortedEntries = sortOn fst $ HashMap.toList hmap
+  let sortedEntries = Map.toAscList hmap
       intMap = foldr (\(position, value) -> insertValue (f position) value) IntMap.empty sortedEntries
    in IntMap.elems intMap
   where
