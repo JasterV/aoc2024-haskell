@@ -14,8 +14,8 @@ where
 
 import Data.HashMap.Lazy (HashMap)
 import qualified Data.HashMap.Lazy as HashMap
-import Data.IntMap.Lazy (IntMap)
 import qualified Data.IntMap.Lazy as IntMap
+import Data.List (sortOn)
 import Data.Maybe
 import Prelude hiding (lookup)
 
@@ -48,12 +48,13 @@ lookupMultiple positions matrix = mapMaybe (`lookup` matrix) positions
 
 {--
 Given a matrix of elements and a function mapping a position into an aggregation of its values,
-group the elements by the aggregation result
+group the elements by the aggregation result.
+The values are grouped in order.
 --}
 groupWith :: forall v. ((Int, Int) -> Int) -> Matrix v -> [[v]]
 groupWith f (Matrix hmap) =
-  let intMap :: IntMap [v]
-      intMap = HashMap.foldrWithKey (insertValue . f) IntMap.empty hmap
+  let sortedEntries = sortOn fst $ HashMap.toList hmap
+      intMap = foldr (\(position, value) -> insertValue (f position) value) IntMap.empty sortedEntries
    in IntMap.elems intMap
   where
     insertValue key value =
