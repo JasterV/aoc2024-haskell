@@ -1,7 +1,7 @@
 module Day4 (partOne, partTwo) where
 
 import Data.List (sort, transpose)
-import qualified Day4.Matrix as M
+import qualified Data.Matrix as M
 
 partOne :: String -> Int
 partOne input =

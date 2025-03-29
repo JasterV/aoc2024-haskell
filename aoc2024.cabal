@@ -25,12 +25,13 @@ source-repository head
 
 library
   exposed-modules:
+      Data.Matrix
       Day1
       Day2
       Day3
       Day4
-      Day4.Matrix
       Day5
+      Day6
   other-modules:
       Paths_aoc2024
   autogen-modules:

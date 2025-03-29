@@ -1,10 +1,12 @@
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
-module Day4.Matrix
+module Data.Matrix
   ( Matrix,
+    Position,
     buildMatrix,
     groupWith,
+    lookupValue,
     lookup,
     lookupMultiple,
     filterWithKey,
@@ -13,12 +15,15 @@ module Day4.Matrix
 where
 
 import qualified Data.IntMap.Lazy as IntMap
+import Data.List (find)
 import Data.Map.Lazy (Map)
 import qualified Data.Map.Lazy as Map
 import Data.Maybe
 import Prelude hiding (lookup)
 
 newtype Matrix v = Matrix (Map (Int, Int) v)
+
+type Position = (Int, Int)
 
 buildMatrix :: [[a]] -> Matrix a
 buildMatrix xs = Matrix (go xs 0 Map.empty)
@@ -36,21 +41,31 @@ buildMatrix xs = Matrix (go xs 0 Map.empty)
 size :: Matrix v -> Int
 size (Matrix hmap) = Map.size hmap
 
-filterWithKey :: ((Int, Int) -> v -> Bool) -> Matrix v -> Matrix v
+filterWithKey :: (Position -> v -> Bool) -> Matrix v -> Matrix v
 filterWithKey f (Matrix hmap) = Matrix (Map.filterWithKey f hmap)
 
-lookup :: (Int, Int) -> Matrix v -> Maybe v
+lookup :: Position -> Matrix v -> Maybe v
 lookup position (Matrix hmap) = Map.lookup position hmap
 
-lookupMultiple :: [(Int, Int)] -> Matrix v -> [v]
+lookupMultiple :: [Position] -> Matrix v -> [v]
 lookupMultiple positions matrix = mapMaybe (`lookup` matrix) positions
+
+{--
+  Search for the given value on the matrix.
+  Return the position of the first match if found and nothing if it doens't exist.
+--}
+lookupValue :: (Eq v) => v -> Matrix v -> Maybe Position
+lookupValue v (Matrix hmap) =
+  let entries = Map.toAscList hmap
+      mEntry = find ((== v) . snd) entries
+   in fst <$> mEntry
 
 {--
 Given a matrix of elements and a function mapping a position into an aggregation of its values,
 group the elements by the aggregation result.
 The values are grouped in order.
 --}
-groupWith :: forall v. ((Int, Int) -> Int) -> Matrix v -> [[v]]
+groupWith :: forall v. (Position -> Int) -> Matrix v -> [[v]]
 groupWith f (Matrix hmap) =
   let sortedEntries = Map.toAscList hmap
       intMap = foldr (\(position, value) -> insertValue (f position) value) IntMap.empty sortedEntries
