@@ -7,9 +7,6 @@ import qualified Data.Matrix as M
 import Data.Maybe
 import Prelude hiding (Left, Right)
 
-data Error = StartingPositionNotFound
-  deriving (Show)
-
 partOne :: String -> Maybe Int
 partOne input = length <$> predictGuardsRoute (parseLabMap input)
 
