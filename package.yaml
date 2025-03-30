@@ -25,6 +25,7 @@ dependencies:
   - text >= 2.0.2
   - containers
   - unordered-containers
+  - hashable
 
 ghc-options:
   - -Wall
