@@ -6,33 +6,35 @@ import qualified Data.Matrix as M
 import Day6.Guard (Guard (..))
 import qualified Day6.Guard as G
 
-data Error = GuardNotFoundError
+data Error = GuardNotFoundError | InfiniteLoopError
   deriving (Eq, Show)
 
 partOne :: String -> Either Error Int
 partOne input = do
   let labMap = parseLabMap input
   guard <- findGuard labMap
-  let route = predictGuardsRoute guard labMap
+  route <- predictGuardsRoute guard labMap
   return (length route)
 
 partTwo :: String -> Either Error Int
 partTwo input = do
   let labMap = parseLabMap input
   guard <- findGuard labMap
+  route <- predictGuardsRoute guard labMap
   let initialPosition = position guard
-      route = predictGuardsRoute guard labMap
       candidates = filter (/= initialPosition) route
 
   return $
     length $
       filter (hasLoop guard) $
         map (\pos -> M.insert pos '#' labMap) candidates
+  where
+    hasLoop initialGuard labMap = case predictGuardsRoute initialGuard labMap of
+      Left InfiniteLoopError -> True
+      _ -> False
 
 -- Laboratory Map
 type LabMap = Matrix Char
-
-data FoldLabMapResult a = Success a | InfiniteLoopError
 
 parseLabMap :: String -> LabMap
 parseLabMap = M.buildMatrix . lines
@@ -50,18 +52,18 @@ findGuard matrix =
         [_, _, _, Just pos] -> Right (Guard pos G.Left)
         _ -> Left GuardNotFoundError
 
-foldLabMapWithGuard :: a -> (Guard -> a -> a) -> Guard -> LabMap -> FoldLabMapResult a
-foldLabMapWithGuard initialValue f initialGuard labMap = go initialGuard HashSet.empty initialValue
+predictGuardsRoute :: Guard -> LabMap -> Either Error [Position]
+predictGuardsRoute initialGuard labMap = go initialGuard HashSet.empty HashSet.empty
   where
     go guard visited acc =
       let guard' = moveGuard guard
-          acc' = f guard acc
+          acc' = HashSet.insert (position guard) acc
           visited' = HashSet.insert guard visited
        in if HashSet.member guard visited
-            then InfiniteLoopError
+            then Left InfiniteLoopError
             else
               if guard == guard'
-                then Success acc'
+                then Right (HashSet.toList acc')
                 else go guard' visited' acc'
 
     moveGuard :: Guard -> Guard
@@ -72,13 +74,3 @@ foldLabMapWithGuard initialValue f initialGuard labMap = go initialGuard HashSet
             Nothing -> guard
             Just '#' -> G.turnRight guard
             Just _ -> guard'
-
-hasLoop :: Guard -> LabMap -> Bool
-hasLoop initialGuard labMap = case foldLabMapWithGuard [] (\_ _ -> []) initialGuard labMap of
-  InfiniteLoopError -> True
-  _ -> False
-
-predictGuardsRoute :: Guard -> LabMap -> [Position]
-predictGuardsRoute guard labMap = case foldLabMapWithGuard HashSet.empty (HashSet.insert . position) guard labMap of
-  InfiniteLoopError -> []
-  Success set -> HashSet.toList set
