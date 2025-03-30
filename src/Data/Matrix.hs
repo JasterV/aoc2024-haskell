@@ -11,6 +11,7 @@ module Data.Matrix
     lookupMultiple,
     filterWithKey,
     size,
+    insert,
   )
 where
 
@@ -49,6 +50,13 @@ lookup position (Matrix hmap) = Map.lookup position hmap
 
 lookupMultiple :: [Position] -> Matrix v -> [v]
 lookupMultiple positions matrix = mapMaybe (`lookup` matrix) positions
+
+insert :: Position -> v -> Matrix v -> Matrix v
+insert position value (Matrix hmap) =
+  Matrix $
+    if Map.member position hmap
+      then Map.insert position value hmap
+      else hmap
 
 {--
   Search for the given value on the matrix.
