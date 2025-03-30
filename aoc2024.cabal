@@ -1,74 +1,77 @@
-cabal-version: 2.2
+cabal-version:      2.2
+name:               aoc2024
+version:            0.1.0.0
+license:            BSD-3-Clause
+license-file:       LICENSE
+copyright:          2025 Author name here
+maintainer:         example@example.com
+author:             Author name here
+homepage:           https://github.com/githubuser/aoc2024#readme
+bug-reports:        https://github.com/githubuser/aoc2024/issues
+description:
+    Please see the README on GitHub at <https://github.com/githubuser/aoc2024#readme>
 
--- This file has been generated from package.yaml by hpack version 0.37.0.
---
--- see: https://github.com/sol/hpack
-
-name:           aoc2024
-version:        0.1.0.0
-description:    Please see the README on GitHub at <https://github.com/githubuser/aoc2024#readme>
-homepage:       https://github.com/githubuser/aoc2024#readme
-bug-reports:    https://github.com/githubuser/aoc2024/issues
-author:         Author name here
-maintainer:     example@example.com
-copyright:      2025 Author name here
-license:        BSD-3-Clause
-license-file:   LICENSE
-build-type:     Simple
+build-type:         Simple
 extra-source-files:
     README.md
     CHANGELOG.md
 
 source-repository head
-  type: git
-  location: https://github.com/githubuser/aoc2024
+    type:     git
+    location: https://github.com/githubuser/aoc2024
 
 library
-  exposed-modules:
-      Data.Matrix
-      Day1
-      Day2
-      Day3
-      Day4
-      Day5
-      Day6
-  other-modules:
-      Paths_aoc2024
-  autogen-modules:
-      Paths_aoc2024
-  hs-source-dirs:
-      src
-  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints
-  build-depends:
-      base >=4.7 && <5
-    , containers
-    , regex-tdfa >=1.3.2 && <1.4
-    , text >=2.0.2
-    , unordered-containers
-  default-language: Haskell2010
+    exposed-modules:
+        Data.Matrix
+        Day1
+        Day2
+        Day3
+        Day4
+        Day5
+        Day6
+
+    hs-source-dirs:   src
+    other-modules:    Paths_aoc2024
+    autogen-modules:  Paths_aoc2024
+    default-language: Haskell2010
+    ghc-options:
+        -Wall -Wcompat -Widentities -Wincomplete-record-updates
+        -Wincomplete-uni-patterns -Wmissing-export-lists
+        -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints
+
+    build-depends:
+        base >=4.7 && <5,
+        containers,
+        regex-tdfa >=1.3.2 && <1.4,
+        text >=2.0.2,
+        unordered-containers
 
 test-suite aoc2024-test
-  type: exitcode-stdio-1.0
-  main-is: Spec.hs
-  other-modules:
-      Day1Spec
-      Day2Spec
-      Day3Spec
-      Day4Spec
-      Day5Spec
-      Paths_aoc2024
-  autogen-modules:
-      Paths_aoc2024
-  hs-source-dirs:
-      test
-  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
-  build-depends:
-      QuickCheck >=2.14.3 && <2.15
-    , aoc2024
-    , base >=4.7 && <5
-    , containers
-    , hspec >=2.0.0
-    , regex-tdfa >=1.3.2 && <1.4
-    , text >=2.0.2
-    , unordered-containers
-  default-language: Haskell2010
+    type:             exitcode-stdio-1.0
+    main-is:          Spec.hs
+    hs-source-dirs:   test
+    other-modules:
+        Day1Spec
+        Day2Spec
+        Day3Spec
+        Day4Spec
+        Day5Spec
+        Paths_aoc2024
+
+    autogen-modules:  Paths_aoc2024
+    default-language: Haskell2010
+    ghc-options:
+        -Wall -Wcompat -Widentities -Wincomplete-record-updates
+        -Wincomplete-uni-patterns -Wmissing-export-lists
+        -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints
+        -threaded -rtsopts -with-rtsopts=-N
+
+    build-depends:
+        QuickCheck >=2.14.3 && <2.15,
+        aoc2024,
+        base >=4.7 && <5,
+        containers,
+        hspec >=2.0.0,
+        regex-tdfa >=1.3.2 && <1.4,
+        text >=2.0.2,
+        unordered-containers
