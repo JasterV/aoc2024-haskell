@@ -3,7 +3,7 @@
 module Day6.Guard (Guard (..), Direction (..), moveForward, turnRight) where
 
 import Data.Hashable
-import Data.Matrix (Position)
+import Data.Point (Point)
 import GHC.Generics (Generic)
 import Prelude hiding (Left, Right)
 
@@ -12,7 +12,7 @@ data Direction = Up | Down | Left | Right
 
 instance Hashable Direction
 
-data Guard = Guard {position :: Position, directon :: Direction}
+data Guard = Guard {position :: Point, directon :: Direction}
   deriving (Eq, Generic)
 
 instance Hashable Guard

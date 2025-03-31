@@ -27,6 +27,7 @@ library
   exposed-modules:
       Data.List.Extra
       Data.Matrix
+      Data.Point
       Day1
       Day2
       Day3

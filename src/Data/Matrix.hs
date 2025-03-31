@@ -3,7 +3,6 @@
 
 module Data.Matrix
   ( Matrix,
-    Position,
     buildMatrix,
     lookupValue,
     lookup,
@@ -21,11 +20,10 @@ import Data.List (find)
 import Data.Map.Lazy (Map)
 import qualified Data.Map.Lazy as Map
 import Data.Maybe
+import Data.Point (Point)
 import Prelude hiding (filter, lookup)
 
 newtype Matrix v = Matrix (Map (Int, Int) v)
-
-type Position = (Int, Int)
 
 buildMatrix :: [[a]] -> Matrix a
 buildMatrix xs = Matrix (go xs 0 Map.empty)
@@ -43,22 +41,22 @@ buildMatrix xs = Matrix (go xs 0 Map.empty)
 size :: Matrix v -> Int
 size (Matrix hmap) = Map.size hmap
 
-isInBounds :: Position -> Matrix v -> Bool
+isInBounds :: Point -> Matrix v -> Bool
 isInBounds pos (Matrix hmap) = Map.member pos hmap
 
-filterWithKey :: (Position -> v -> Bool) -> Matrix v -> Matrix v
+filterWithKey :: (Point -> v -> Bool) -> Matrix v -> Matrix v
 filterWithKey f (Matrix hmap) = Matrix (Map.filterWithKey f hmap)
 
 filter :: (v -> Bool) -> Matrix v -> Matrix v
 filter f (Matrix hmap) = Matrix (Map.filter f hmap)
 
-lookup :: Position -> Matrix v -> Maybe v
+lookup :: Point -> Matrix v -> Maybe v
 lookup position (Matrix hmap) = Map.lookup position hmap
 
-lookupMultiple :: [Position] -> Matrix v -> [v]
+lookupMultiple :: [Point] -> Matrix v -> [v]
 lookupMultiple positions matrix = mapMaybe (`lookup` matrix) positions
 
-insert :: Position -> v -> Matrix v -> Matrix v
+insert :: Point -> v -> Matrix v -> Matrix v
 insert position value (Matrix hmap) =
   Matrix $
     if Map.member position hmap
@@ -69,7 +67,7 @@ insert position value (Matrix hmap) =
   Search for the given value on the matrix.
   Return the position of the first match if found and nothing if it doens't exist.
 --}
-lookupValue :: (Eq v) => v -> Matrix v -> Maybe Position
+lookupValue :: (Eq v) => v -> Matrix v -> Maybe Point
 lookupValue v (Matrix hmap) =
   let entries = Map.toAscList hmap
       mEntry = find ((== v) . snd) entries
@@ -80,7 +78,7 @@ Group elements given a function.
 The function receives an entry of the matrix and returns a pair of key -> value.
 The values are grouped in order.
 --}
-groupByWith :: forall v a b. (Ord a) => ((Position, v) -> (a, b)) -> Matrix v -> Map a [b]
+groupByWith :: forall v a b. (Ord a) => ((Point, v) -> (a, b)) -> Matrix v -> Map a [b]
 groupByWith f (Matrix hmap) =
   let sortedEntries = Map.toAscList hmap
    in foldr (insert' . f) Map.empty sortedEntries

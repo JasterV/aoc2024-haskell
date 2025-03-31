@@ -1,8 +1,9 @@
 module Day6 (partOne, partTwo) where
 
 import qualified Data.HashSet as HashSet
-import Data.Matrix (Matrix, Position)
+import Data.Matrix (Matrix)
 import qualified Data.Matrix as M
+import Data.Point (Point)
 import Day6.Guard (Guard (..))
 import qualified Day6.Guard as G
 
@@ -21,8 +22,8 @@ partTwo input = do
   let labMap = parseLabMap input
   guard <- findGuard labMap
   route <- predictGuardsRoute guard labMap
-  let initialPosition = position guard
-      candidates = filter (/= initialPosition) route
+  let initialPoint = position guard
+      candidates = filter (/= initialPoint) route
 
   return $
     length $
@@ -52,7 +53,7 @@ findGuard matrix =
         [_, _, _, Just pos] -> Right (Guard pos G.Left)
         _ -> Left GuardNotFoundError
 
-predictGuardsRoute :: Guard -> LabMap -> Either Error [Position]
+predictGuardsRoute :: Guard -> LabMap -> Either Error [Point]
 predictGuardsRoute initialGuard labMap = go initialGuard HashSet.empty HashSet.empty
   where
     go guard visited acc =
