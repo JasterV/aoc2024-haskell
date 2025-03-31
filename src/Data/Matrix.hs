@@ -5,22 +5,23 @@ module Data.Matrix
   ( Matrix,
     Position,
     buildMatrix,
-    groupWith,
     lookupValue,
     lookup,
     lookupMultiple,
     filterWithKey,
     size,
     insert,
+    groupByWith,
+    filter,
+    isInBounds,
   )
 where
 
-import qualified Data.IntMap.Lazy as IntMap
 import Data.List (find)
 import Data.Map.Lazy (Map)
 import qualified Data.Map.Lazy as Map
 import Data.Maybe
-import Prelude hiding (lookup)
+import Prelude hiding (filter, lookup)
 
 newtype Matrix v = Matrix (Map (Int, Int) v)
 
@@ -42,8 +43,14 @@ buildMatrix xs = Matrix (go xs 0 Map.empty)
 size :: Matrix v -> Int
 size (Matrix hmap) = Map.size hmap
 
+isInBounds :: Position -> Matrix v -> Bool
+isInBounds pos (Matrix hmap) = Map.member pos hmap
+
 filterWithKey :: (Position -> v -> Bool) -> Matrix v -> Matrix v
 filterWithKey f (Matrix hmap) = Matrix (Map.filterWithKey f hmap)
+
+filter :: (v -> Bool) -> Matrix v -> Matrix v
+filter f (Matrix hmap) = Matrix (Map.filter f hmap)
 
 lookup :: Position -> Matrix v -> Maybe v
 lookup position (Matrix hmap) = Map.lookup position hmap
@@ -69,18 +76,18 @@ lookupValue v (Matrix hmap) =
    in fst <$> mEntry
 
 {--
-Given a matrix of elements and a function mapping a position into an aggregation of its values,
-group the elements by the aggregation result.
+Group elements given a function.
+The function receives an entry of the matrix and returns a pair of key -> value.
 The values are grouped in order.
 --}
-groupWith :: forall v. (Position -> Int) -> Matrix v -> [[v]]
-groupWith f (Matrix hmap) =
+groupByWith :: forall v a b. (Ord a) => ((Position, v) -> (a, b)) -> Matrix v -> Map a [b]
+groupByWith f (Matrix hmap) =
   let sortedEntries = Map.toAscList hmap
-      intMap = foldr (\(position, value) -> insertValue (f position) value) IntMap.empty sortedEntries
-   in IntMap.elems intMap
+   in foldr (insert' . f) Map.empty sortedEntries
   where
-    insertValue key value =
-      IntMap.alter
+    insert' :: (a, b) -> Map a [b] -> Map a [b]
+    insert' (key, value) =
+      Map.alter
         ( \case
             Nothing -> Just [value]
             Just xs -> Just (value : xs)

@@ -34,6 +34,7 @@ library
       Day6
       Day6.Guard
       Day7
+      Day8
   other-modules:
       Paths_aoc2024
   autogen-modules:
