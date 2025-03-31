@@ -1,34 +1,51 @@
 module Day8 (partOne, partTwo) where
 
-import Data.List (nub, subsequences)
+import Data.List (nub)
+import Data.List.Extra (pairs)
 import qualified Data.Map.Lazy as Map
-import Data.Matrix (Position)
+import Data.Matrix (Matrix, Position)
 import qualified Data.Matrix as M
-import Data.Maybe (mapMaybe)
 
-type AntiNode = (Int, Int)
+type Node = (Int, Int)
 
 partOne :: String -> Int
-partOne input = length $ filter (`M.isInBounds` matrix) $ nub $ concatMap (uncurry getAntiNodes) combinations
+partOne input = length $ filter (`M.isInBounds` grid) $ nub antiNodes
   where
-    matrix = M.buildMatrix (lines input)
-    noDotsMatrix = M.filter (/= '.') matrix
-    pointGroups = Map.elems $ M.groupByWith (\(position, value) -> (value, position)) noDotsMatrix
-    combinations = concatMap pairs pointGroups
+    grid = M.buildMatrix (lines input)
+    antiNodes = concatMap (uncurry getAntiNodes) $ nodePairs grid
+
+    getAntiNodes x y = case distance x y of
+      (0, 0) -> []
+      d -> [add x d, substract y d]
 
 partTwo :: String -> Int
-partTwo input = undefined
-
-pairs :: [a] -> [(a, a)]
-pairs xs = mapMaybe parse $ subsequences xs
+partTwo input = length antiNodes
   where
-    parse :: [a] -> Maybe (a, a)
-    parse [x, y] = Just (x, y)
-    parse _ = Nothing
+    matrix = M.buildMatrix (lines input)
+    combinations = nodePairs matrix
+    antiNodes = nub $ concatMap (uncurry getAntiNodes) combinations
 
-getAntiNodes :: Position -> Position -> [AntiNode]
-getAntiNodes (xrow, xcol) (yrow, ycol) = case distance of
-  (0, 0) -> []
-  (drow, dcol) -> [(xrow + drow, xcol + dcol), (yrow - drow, ycol - dcol)]
-  where
-    distance = (xrow - yrow, xcol - ycol)
+    getAntiNodes x y = case distance x y of
+      (0, 0) -> []
+      d -> computePointsAtDistance x d add ++ computePointsAtDistance y d substract
+
+    computePointsAtDistance point dist f =
+      let point' = f point dist
+       in if M.isInBounds point matrix
+            then point : computePointsAtDistance point' dist f
+            else []
+
+nodePairs :: Matrix Char -> [(Node, Node)]
+nodePairs matrix =
+  let noDotsMatrix = M.filter (/= '.') matrix
+      pointGroups = Map.elems $ M.groupByWith (\(position, value) -> (value, position)) noDotsMatrix
+   in concatMap pairs pointGroups
+
+substract :: Position -> (Int, Int) -> (Int, Int)
+substract (x, y) (dx, dy) = (x - dx, y - dy)
+
+add :: Position -> (Int, Int) -> (Int, Int)
+add (x, y) (dx, dy) = (x + dx, y + dy)
+
+distance :: Position -> Position -> (Int, Int)
+distance (xrow, xcol) (yrow, ycol) = (xrow - yrow, xcol - ycol)

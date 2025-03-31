@@ -25,6 +25,7 @@ source-repository head
 
 library
   exposed-modules:
+      Data.List.Extra
       Data.Matrix
       Day1
       Day2
@@ -62,6 +63,7 @@ test-suite aoc2024-test
       Day5Spec
       Day6Spec
       Day7Spec
+      Day8Spec
       Paths_aoc2024
   autogen-modules:
       Paths_aoc2024
