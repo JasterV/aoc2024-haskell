@@ -33,6 +33,7 @@ library
       Day5
       Day6
       Day6.Guard
+      Day7
   other-modules:
       Paths_aoc2024
   autogen-modules:
@@ -59,6 +60,7 @@ test-suite aoc2024-test
       Day4Spec
       Day5Spec
       Day6Spec
+      Day7Spec
       Paths_aoc2024
   autogen-modules:
       Paths_aoc2024
