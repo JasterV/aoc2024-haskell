@@ -7,22 +7,29 @@ import qualified Data.Matrix as M
 import Data.Point (Point)
 
 partOne :: String -> Int
-partOne input = length $ filter (uncurry (isReachable matrix)) candidates
+partOne input = length $ filter ((> 0) . uncurry (rating matrix)) candidates
   where
     matrix = parseMatrix input
-    trailHeads = M.points $ M.filter (== 0) matrix
-    trailEnds = M.points $ M.filter (== 9) matrix
-    candidates = concatMap (zip trailHeads . repeat) trailEnds
+    candidates = possibleTrails matrix
 
-isReachable :: Matrix Int -> Point -> Point -> Bool
-isReachable matrix x y = go (getCandidates 1 x) [y] 1
+partTwo :: String -> Int
+partTwo input = sum $ map (uncurry (rating matrix)) candidates
   where
-    go :: [Point] -> [Point] -> Int -> Bool
-    go _ _ 9 = False
+    matrix = parseMatrix input
+    candidates = possibleTrails matrix
+
+rating :: Matrix Int -> Point -> Point -> Int
+rating matrix x y = go (getCandidates 1 x) [y] 1
+  where
+    go :: [Point] -> [Point] -> Int -> Int
+    go _ _ 6 = 0
     go leftFront rightFront step =
       let leftFront' = concatMap (getCandidates (1 + step)) leftFront
           rightFront' = concatMap (getCandidates (9 - step)) rightFront
-       in not (null (leftFront `intersect` rightFront)) || go leftFront' rightFront' (step + 1)
+          intersection = intersect leftFront rightFront
+       in if not (null intersection)
+            then length intersection
+            else go leftFront' rightFront' (step + 1)
 
     getCandidates :: Int -> Point -> [Point]
     getCandidates value (row, col) =
@@ -36,8 +43,11 @@ isReachable matrix x y = go (getCandidates 1 x) [y] 1
               )
             $ zip positions values
 
-partTwo :: String -> Int
-partTwo input = 0
+possibleTrails :: Matrix Int -> [(Point, Point)]
+possibleTrails matrix =
+  let trailHeads = M.points $ M.filter (== 0) matrix
+      trailEnds = M.points $ M.filter (== 9) matrix
+   in concatMap (zip trailHeads . repeat) trailEnds
 
 parseMatrix :: String -> Matrix Int
 parseMatrix = M.buildMatrix . map (map digitToInt) . lines
