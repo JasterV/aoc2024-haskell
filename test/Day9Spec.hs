@@ -10,6 +10,6 @@ spec = do
       partOne input `shouldBe` 1928
   describe "PartTwo" $ do
     it "works" $ do
-      partTwo input `shouldBe` 0
+      partTwo input `shouldBe` 2858
   where
     input = "2333133121414131402"

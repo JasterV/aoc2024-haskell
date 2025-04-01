@@ -13,6 +13,7 @@ data Block = FileBlock Position FileId | FreeBlock Position
   deriving (Show, Eq)
 
 data Object = File Position Space FileId | FreeSpace Position Space
+  deriving (Show, Eq)
 
 partOne :: String -> Int
 partOne input = calculateCheckSum compactFiles
@@ -28,31 +29,54 @@ partOne input = calculateCheckSum compactFiles
           | lIndex > rIndex = reverse acc
           | otherwise = case (lBlock, rBlock) of
               (FileBlock _ _, _) -> go xs (rBlock : ys) (lBlock : acc)
-              (FreeBlock _, FileBlock _ _) -> go xs ys (rBlock : acc)
+              (FreeBlock lPos, FileBlock _ fId) -> go xs ys (FileBlock lPos fId : acc)
               (FreeBlock _, FreeBlock _) -> go (lBlock : xs) ys acc
           where
             lIndex = getBlockPosition lBlock
             rIndex = getBlockPosition rBlock
 
 partTwo :: String -> Int
-partTwo _ = 0
+partTwo input = calculateCheckSum $ concatMap getBlocks compactFiles
+  where
+    objects = parseDisk input
+
+    compactFiles :: [Object]
+    compactFiles = go (reverse objects)
+      where
+        go [] = []
+        go ((FreeSpace _ _) : ys) = go ys
+        go (file@(File pos space fId) : ys) =
+          let mYs = replaceLeftMostSpace (reverse ys) (pos, space, fId)
+           in case mYs of
+                Nothing -> go ys ++ [file]
+                Just ys' -> go $ reverse ys'
+
+        replaceLeftMostSpace :: [Object] -> (Position, Space, FileId) -> Maybe [Object]
+        replaceLeftMostSpace [] _ = Nothing
+        replaceLeftMostSpace (left : xs) right@(_, rSpace, fId) =
+          case left of
+            (File {}) -> (left :) <$> replaceLeftMostSpace xs right
+            (FreeSpace lPos lSpace)
+              | lSpace == rSpace -> Just (File lPos rSpace fId : xs)
+              | lSpace > rSpace -> Just (File lPos rSpace fId : FreeSpace (lPos + rSpace) (lSpace - rSpace) : xs)
+              | otherwise -> (left :) <$> replaceLeftMostSpace xs right
 
 -- Blocks & Objects
 
 calculateCheckSum :: [Block] -> Int
-calculateCheckSum blocks = sum $ zipWith ((*) . fromMaybe 0 . getFileId) blocks [0 ..]
+calculateCheckSum blocks = sum $ mapMaybe blockCheckSum blocks
 
 getBlocks :: Object -> [Block]
 getBlocks (File position space fileId) = map (`FileBlock` fileId) [position .. (position + space - 1)]
 getBlocks (FreeSpace position space) = map FreeBlock [position .. (position + space - 1)]
 
-getFileId :: Block -> Maybe FileId
-getFileId (FileBlock _ fileId) = Just fileId
-getFileId _ = Nothing
-
 getBlockPosition :: Block -> Position
 getBlockPosition (FileBlock pos _) = pos
 getBlockPosition (FreeBlock pos) = pos
+
+blockCheckSum :: Block -> Maybe Int
+blockCheckSum (FileBlock pos fileId) = Just (pos * fileId)
+blockCheckSum _ = Nothing
 
 -- Parsing
 
