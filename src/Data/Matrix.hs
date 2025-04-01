@@ -13,6 +13,7 @@ module Data.Matrix
     groupByWith,
     filter,
     isInBounds,
+    points,
   )
 where
 
@@ -55,6 +56,9 @@ lookup position (Matrix hmap) = Map.lookup position hmap
 
 lookupMultiple :: [Point] -> Matrix v -> [v]
 lookupMultiple positions matrix = mapMaybe (`lookup` matrix) positions
+
+points :: Matrix v -> [Point]
+points (Matrix hmap) = Map.keys hmap
 
 insert :: Point -> v -> Matrix v -> Matrix v
 insert position value (Matrix hmap) =
