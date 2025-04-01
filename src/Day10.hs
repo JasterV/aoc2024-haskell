@@ -22,14 +22,17 @@ rating :: Matrix Int -> Point -> Point -> Int
 rating matrix x y = go (getCandidates 1 x) [y] 1
   where
     go :: [Point] -> [Point] -> Int -> Int
-    go _ _ 6 = 0
-    go leftFront rightFront step =
-      let leftFront' = concatMap (getCandidates (1 + step)) leftFront
-          rightFront' = concatMap (getCandidates (9 - step)) rightFront
-          intersection = intersect leftFront rightFront
-       in if not (null intersection)
-            then length intersection
-            else go leftFront' rightFront' (step + 1)
+    go leftFront rightFront step
+      | step > 5 = 0
+      | step < 5 =
+          let leftFront' = concatMap (getCandidates (1 + step)) leftFront
+              rightFront' = concatMap (getCandidates (9 - step)) rightFront
+           in go leftFront' rightFront' (step + 1)
+      | otherwise =
+          let intersectionA = intersect leftFront rightFront
+              intersectionB = intersect rightFront leftFront
+              intersection = if length intersectionA > length intersectionB then intersectionA else intersectionB
+           in length intersection
 
     getCandidates :: Int -> Point -> [Point]
     getCandidates value (row, col) =
