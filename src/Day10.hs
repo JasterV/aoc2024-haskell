@@ -1,38 +1,39 @@
 module Day10 (partOne, partTwo) where
 
 import Data.Char (digitToInt)
-import Data.List (intersect)
+import Data.List (nub)
 import Data.Matrix (Matrix)
 import qualified Data.Matrix as M
 import Data.Point (Point)
 
 partOne :: String -> Int
-partOne input = length $ filter ((> 0) . uncurry (rating matrix)) candidates
+partOne input = sum $ map (length . nub . trailEnds matrix) heads
   where
     matrix = parseMatrix input
-    candidates = possibleTrails matrix
+    heads = trailHeads matrix
 
 partTwo :: String -> Int
-partTwo input = sum $ map (uncurry (rating matrix)) candidates
+partTwo input = sum $ map (length . trailEnds matrix) heads
   where
     matrix = parseMatrix input
-    candidates = possibleTrails matrix
+    heads = trailHeads matrix
 
-rating :: Matrix Int -> Point -> Point -> Int
-rating matrix x y = go (getCandidates 1 x) [y] 1
+trailHeads :: Matrix Int -> [Point]
+trailHeads matrix = M.points $ M.filter (== 0) matrix
+
+parseMatrix :: String -> Matrix Int
+parseMatrix = M.buildMatrix . map (map digitToInt) . lines
+
+trailEnds :: Matrix Int -> Point -> [Point]
+trailEnds matrix x = go [x] 0
   where
-    go :: [Point] -> [Point] -> Int -> Int
-    go leftFront rightFront step
-      | step > 5 = 0
-      | step < 5 =
-          let leftFront' = concatMap (getCandidates (1 + step)) leftFront
-              rightFront' = concatMap (getCandidates (9 - step)) rightFront
-           in go leftFront' rightFront' (step + 1)
-      | otherwise =
-          let intersectionA = intersect leftFront rightFront
-              intersectionB = intersect rightFront leftFront
-              intersection = if length intersectionA > length intersectionB then intersectionA else intersectionB
-           in length intersection
+    go :: [Point] -> Int -> [Point]
+    go [] _ = []
+    go front step
+      | step < 9 =
+          let front' = concatMap (getCandidates (1 + step)) front
+           in go front' (step + 1)
+      | otherwise = front
 
     getCandidates :: Int -> Point -> [Point]
     getCandidates value (row, col) =
@@ -45,12 +46,3 @@ rating matrix x y = go (getCandidates 1 x) [y] 1
                   Just v -> v == value
               )
             $ zip positions values
-
-possibleTrails :: Matrix Int -> [(Point, Point)]
-possibleTrails matrix =
-  let trailHeads = M.points $ M.filter (== 0) matrix
-      trailEnds = M.points $ M.filter (== 9) matrix
-   in concatMap (zip trailHeads . repeat) trailEnds
-
-parseMatrix :: String -> Matrix Int
-parseMatrix = M.buildMatrix . map (map digitToInt) . lines
